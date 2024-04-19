@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+ffq = "*"
+pandas = "*"
+numpy = "*"
+snakemake = "*"
+spatialdata-io = "*"
+scanpy = "*"
+spatialdata-plot = "*"
+pulp = "==2.7"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
