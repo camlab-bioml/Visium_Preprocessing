@@ -1,6 +1,7 @@
 
 import pandas as pd
 configfile: "config.yaml"
+container: config['container']
 
 output = 'output/' + config['v'] + '/'
 

@@ -2,3 +2,11 @@
 v: 'v1'
 
 samples_file: 'metadata/samples.csv'
+container: '/ddn_exa/campbell/share/containers/scvi-spatialdata.sif'
+
+plot_MT_HB: False
+
+filtering:
+  max_pct_hb: 20
+  max_pct_mt: None
+  min_n_genes_by_counts: 1000
