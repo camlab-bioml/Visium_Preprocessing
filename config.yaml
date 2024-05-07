@@ -1,6 +1,7 @@
 
 v: 'v1'
 
+working_dir: '/ddn_exa/campbell/datasets/visium_preprocessing/'
 samples_file: 'metadata/samples.csv'
 container: '/ddn_exa/campbell/share/containers/scvi-spatialdata.sif'
 

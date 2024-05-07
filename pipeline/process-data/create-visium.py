@@ -1,10 +1,9 @@
-
-#import spatialdata-io as sp
 import scanpy as sc
 import spatialdata_io
 import spatialdata_plot
-
 import matplotlib.pyplot as plt
+import PIL.Image
+PIL.Image.MAX_IMAGE_PIXELS = None
 
 vs = spatialdata_io.visium(snakemake.params['input_dir'], dataset_id = snakemake.wildcards['sample'])
 vs.table.var_names_make_unique()
@@ -16,7 +15,6 @@ sc.pp.calculate_qc_metrics(vs.table, qc_vars=['mt', 'hb'], percent_top=None, log
 
 #sc.pl.spatial(vs.table, color = ["total_counts", "n_genes_by_counts",'pct_counts_mt', 'pct_counts_hb'], spot_size = 300)
 
-
 with plt.rc_context():
     fig, axs = plt.subplots(ncols=4, nrows=1, figsize=(15, 4))
     vs.pl.render_shapes(color="total_counts").pl.show(ax=axs[0], title="total counts", coordinate_systems = 'global')
@@ -27,4 +25,4 @@ with plt.rc_context():
     plt.savefig(snakemake.output['qc_fig'], bbox_inches="tight")
     plt.close()
 
-vs.write(snakemake.output['h5ad'])
+vs.write(snakemake.output['zarr'])

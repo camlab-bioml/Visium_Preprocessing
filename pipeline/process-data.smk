@@ -3,27 +3,43 @@ process_data = {
     'processed_violin': expand(output + 'figures/qc/Filtered-{sample}-spatial-qc.png', sample = sample_ids)
 }
 
+spots = {
+    'spot_output': expand(output + 'data/spots/{sample}/nuclei_count.csv', sample = sample_ids)
+}
+
 # Conditionally add output files based on user specifications in config
 if config['plot_MT_HB']:
     process_data.append(output + 'figures/qc/MT-HB-counts-violin.png')
 
 rule create_spatialdata:
     input:
-        feature_matrix = "data/output/{sample}_processed/filtered_feature_bc_matrix.h5",
-        barcodes = "data/output/{sample}_processed/barcodes.tsv.gz",
-        features = "data/output/{sample}_processed/features.tsv.gz",
-        matrix = "data/output/{sample}_processed/matrix.mtx.gz",
-        scale_factors = "data/output/{sample}_processed/spatial/scalefactors_json.json",
-        hires = "data/output/{sample}_processed/spatial/tissue_hires_image.png",
-        lowres = "data/output/{sample}_processed/spatial/tissue_lowres_image.png",
-        tissue_pos = "data/output/{sample}_processed/spatial/tissue_positions_list.csv"
+        feature_matrix = "data/visium/{sample}/filtered_feature_bc_matrix.h5",
+        scale_factors = "data/visium/{sample}/spatial/scalefactors_json.json",
+        hires = "data/visium/{sample}/spatial/tissue_hires_image.png",
+        lowres = "data/visium/{sample}/spatial/tissue_lowres_image.png",
+        tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv"
     params:
-        input_dir = directory("data/output/{sample}_processed/")
+        input_dir = directory("data/visium/{sample}/")
     output:
         qc_fig = report(output + 'figures/qc/Raw-{sample}-spatial-qc.png', category = 'Step 1: Data QC'),
         zarr = directory(output + 'data/raw/{sample}/')
     script:
         "process-data/create-visium.py"
+
+rule segment_nuclei:
+    input:
+        feature_matrix = "data/visium/{sample}/filtered_feature_bc_matrix.h5",
+        scale_factors = "data/visium/{sample}/spatial/scalefactors_json.json",
+        hires = "data/visium/{sample}/spatial/tissue_hires_image.png",
+        lowres = "data/visium/{sample}/spatial/tissue_lowres_image.png",
+        tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv"
+    params:
+        input_dir = directory("data/visium/{sample}/")
+    output:
+        spots = directory(output + 'data/spots/{sample}/'),
+        counts = output + 'data/spots/{sample}/' + "nuclei_count.csv"
+    script:
+        "process-data/segmentnuclei.py"
 
 rule combine_anndata_and_plot_counts_violin:
     input:

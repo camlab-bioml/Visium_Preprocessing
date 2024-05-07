@@ -2,3 +2,6 @@
 output/*
 slurm-*
 data/*
+.snakemake/*
+.vscode/*
+envs/*

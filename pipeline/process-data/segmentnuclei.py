@@ -1,24 +1,43 @@
-#!/home/tiakju/miniconda3/envs/rapids-24.02/bin/ python3
-import numpy as np
-import matplotlib.pyplot as plt
-import squidpy as sq
-import scanpy as sc
+import os
 import pandas as pd
-from stardist.models import StarDist2D
+import numpy as np
+import squidpy as sq
+import matplotlib.pyplot as plt
 import tensorflow as tf
+from stardist.models import StarDist2D
 from csbdeep.utils import normalize
-from PIL import Image
+import PIL.Image
+PIL.Image.MAX_IMAGE_PIXELS = None
 
-# Remove decompression bomb
-Image.MAX_IMAGE_PIXELS = 1000000000
+gpus = tf.config.list_physical_devices('GPU')
+tf.config.set_visible_devices(gpus[:1], device_type='GPU')
+# Create a LogicalDevice with the appropriate memory limit
+log_dev_conf = tf.config.LogicalDeviceConfiguration(
+    memory_limit=8*1024 # 8 GB
+)
+# Apply the logical device configuration to the first GPU
+tf.config.set_logical_device_configuration(
+    gpus[0],
+    [log_dev_conf])
 
-input_adata = "output/v1/" + snakemake.wildcards['sample'] +".h5ad"
+# **** Because of compatibility with squidpy I will load the raw adata. Recommend to do post-hoc addition of nuclei count to clean SpatialData object. 
+# To update script for GPU implementation -> numpy problem
 
-# Load anndata object
-adata = sc.read_h5ad(input_adata)
+# For Troubleshooting
+# input_sample = "donorA"
+# input_folder = "data/visium/" + input_sample
 
-# Get hi-res image nd-array from anndata and generate imageContainer
-img = adata.uns["spatial"][args.name]['images']['hires']
+input_sample = snakemake.wildcards['sample'] # replace with snakemake object
+input_folder = snakemake.params['input_dir']
+
+# Load visium object from rule, filter on tissue
+adata = sq.read.visium(input_folder)
+adata = adata[adata.obs['in_tissue']==1]
+
+# Load image array, get hires, convert to imagecontainer
+img = adata.uns["spatial"]
+scale_factor = img[next(iter(img))]['scalefactors']["tissue_hires_scalef"]
+img = img[next(iter(img))]['images']['hires']
 img = sq.im.ImageContainer(img)
 
 # Generate spot crops
@@ -42,28 +61,25 @@ n_spot = adata.n_obs
 n_nuclei = []
 barcode = []
 
-myfun.create_folder(output_folder + "spots")
-
+spot_path = snakemake.output['spots']
+if not os.path.exists(spot_path):
+    os.makedirs(spot_path)
+    
 for i in range(n_spot):
     crop, id = next(gen, i)
-    sq.im.segment(img=crop, layer="image", channel=None, method=stardist_2D_versatile_he, layer_added="segmented_stardist_default" ,prob_thresh=0.6, nms_thresh=None)
+    sq.im.segment(img=crop, layer="image", channel=None, method=stardist_2D_versatile_he, layer_added="segmented_stardist_default" , prob_thresh=0.6, nms_thresh=None)
     n_nuclei.append(len(np.unique(crop['segmented_stardist_default'])))
     barcode.append(id)
-    
     fig, axes = plt.subplots(1, 2)
     crop.show("image", ax=axes[0])
     _ = axes[0].set_title("H&E " + id)
     crop.show("segmented_stardist_default", cmap="jet", interpolation="none", ax=axes[1])
     _ = axes[1].set_title("segmentation")
-    plt.savefig(output_folder + "spots/" + id + "_segmentation.png")
+    plt.savefig(spot_path + "/" + id + "_segmentation.png")
 
 # Generate nuclei count dataframe
 nuclei_count = pd.DataFrame(n_nuclei, columns=['n_nuclei'], index = barcode)
-nuclei_count.to_csv(path_or_buf=output_files[0]['output_file_0'])
-
-# Join anndata obs, write to adata
-adata.obs = adata.obs.join(nuclei_count).fillna(0)
-adata.write_h5ad(output_files[1]['output_file_1'])
+nuclei_count.to_csv(path_or_buf= spot_path + "/nuclei_count.csv")
 
 # Finish Job
 exit()

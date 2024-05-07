@@ -1,33 +1,29 @@
 import numpy as np
 import scanpy as sc
 import pandas as pd
-import spatialdata
 import cell2location
-from cell2location.utils.filtering import filter_genes
-from cell2location.models import RegressionModel
 
-# Set up expected inputs
+# Set up expected inputsls
 sc_input = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
 
 # Set up expected outputs
-model_output = "data/singlecell/Peng_cell2loc_model"
-adata_output = "data/singlecell/Peng_cell2loc.h5ad"
-nb_output = "data/singlecell/estimated_expression.csv"
+model_output = "output/v1/cell2loc/Peng_cell2loc_model/"
+nb_output = "output/v1/cell2loc/Peng_cell2loc_model/estimated_expression.csv"
 
 # Load annData Object, set to ensembl id
 adata_ref =  sc.read_h5ad(sc_input)
 
 # Select genes
-selected = filter_genes(adata_ref, cell_count_cutoff=5, cell_percentage_cutoff2=0.03, nonz_mean_cutoff=1.12)
+selected = cell2location.utils.filter_genes(adata_ref, cell_count_cutoff=5, cell_percentage_cutoff2=0.03, nonz_mean_cutoff=1.12)
 
 # filter the object
 adata_ref = adata_ref[:, selected].copy()
 
 # Set up models, train, save
 cell2location.models.RegressionModel.setup_anndata(adata=adata_ref,batch_key='sample', labels_key='singler.label')
-mod = RegressionModel(adata_ref)
+mod = cell2location.models.RegressionModel(adata_ref)
 mod.view_anndata_setup()
-mod.train(max_epochs=2, accelerator = "gpu", batch_size=2500, train_size=1) # change to 2 epoch
+mod.train(max_epochs=100, accelerator = "gpu", batch_size=2500, train_size=1) # change to 2 epoch
 mod.save(model_output, overwrite=True)
 
 # Calculate posteior
