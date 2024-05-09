@@ -16,9 +16,7 @@ log_dev_conf = tf.config.LogicalDeviceConfiguration(
     memory_limit=8*1024 # 8 GB
 )
 # Apply the logical device configuration to the first GPU
-tf.config.set_logical_device_configuration(
-    gpus[0],
-    [log_dev_conf])
+tf.config.set_logical_device_configuration(gpus, [log_dev_conf])
 
 # **** Because of compatibility with squidpy I will load the raw adata. Recommend to do post-hoc addition of nuclei count to clean SpatialData object. 
 # To update script for GPU implementation -> numpy problem
