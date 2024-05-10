@@ -58,6 +58,20 @@ rule train_cell2loc:
     script:
         "process-data/cell2loc_train.py"
 
+rule fit_cell2loc:
+    input:
+        model = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
+    params:
+        input_dir = directory("data/singlecell/")
+    output:
+        dir = directory(output + "cell2loc/"),
+        model = output + "cell2loc/model_adata.h5ad",
+        pt = output + "cell2loc/model.pt",
+        mat = output + "cell2loc/stimulated_expression.csv"
+    script:
+        "process-data/cell2loc_train.py"
+
+
 rule combine_anndata_and_plot_counts_violin:
     input:
         spatial_data_out = expand(output + 'figures/qc/Raw-{sample}-spatial-qc.png', sample = sample_ids)

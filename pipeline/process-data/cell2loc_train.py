@@ -4,12 +4,12 @@ import pandas as pd
 import cell2location
 
 # Set up expected inputsls
-sc_input = snakemake.input['h5ad']
+sc_input = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"# snakemake.input['h5ad']
 
 # Set up expected outputs
-model_output = snakemake.output['dir']
-nb_output =  snakemake.output['mat']
-adata_output = snakemake.output['model']
+model_output = "output/v1/Peng_cell2loc_model/" # snakemake.output['dir']
+nb_output =  "output/v1/Peng_cell2loc_model/stimulated_expression.csv"  # snakemake.output['mat']
+adata_output = "output/v1/Peng_cell2loc_model/model.pt" # snakemake.output['model']
 
 # Load annData Object, set to ensembl id
 adata_ref =  sc.read_h5ad(sc_input)
