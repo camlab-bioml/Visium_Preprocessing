@@ -2,14 +2,20 @@ import numpy as np
 import scanpy as sc
 import pandas as pd
 import cell2location
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+mpl.use('Agg')
 
 # Set up expected inputsls
-sc_input = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"# snakemake.input['h5ad']
+sc_input = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad" # snakemake.input['h5ad']
 
 # Set up expected outputs
-model_output = "output/v1/Peng_cell2loc_model/" # snakemake.output['dir']
-nb_output =  "output/v1/Peng_cell2loc_model/stimulated_expression.csv"  # snakemake.output['mat']
-adata_output = "output/v1/Peng_cell2loc_model/model.pt" # snakemake.output['model']
+model_output = "output/v1/cell2loc/Peng_cell2loc_model/" # snakemake.output['dir']
+nb_output =  "output/v1/cell2loc/Peng_cell2loc_model/stimulated_expression.csv"  # snakemake.output['mat']
+train_history = "output/v1/cell2loc/Peng_cell2loc_model/train_history.png" # snakemake.output["train_history"]
+train_accuracy = "output/v1/cell2loc/Peng_cell2loc_model/train_accuracy.png" # snakemake.output["train_accuracy"]
+adata_output = "output/v1/cell2loc/Peng_cell2loc_model/model.pt" # snakemake.output['model']
 
 # Load annData Object, set to ensembl id
 adata_ref =  sc.read_h5ad(sc_input)
@@ -26,6 +32,16 @@ mod = cell2location.models.RegressionModel(adata_ref)
 mod.view_anndata_setup()
 mod.train(max_epochs=100, accelerator = "gpu", batch_size=2500, train_size=1) # change to 2 epoch
 mod.save(model_output, overwrite=True)
+
+# Plots
+mod.plot_history()
+plt.savefig(train_history)
+plt.close()
+
+# Accuracy
+mod.plot_QC()
+plt.savefig(train_accuracy, bbox_inches='tight')
+plt.close()
 
 # Calculate posteior
 adata_ref = mod.export_posterior(adata_ref, sample_kwargs={'num_samples': 1000, 'batch_size': 2500, 'use_gpu': True}) # change to 1000 samples for full run
