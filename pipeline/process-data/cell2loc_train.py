@@ -4,11 +4,12 @@ import pandas as pd
 import cell2location
 
 # Set up expected inputsls
-sc_input = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
+sc_input = snakemake.input['h5ad']
 
 # Set up expected outputs
-model_output = "output/v1/cell2loc/Peng_cell2loc_model/"
-nb_output = "output/v1/cell2loc/Peng_cell2loc_model/estimated_expression.csv"
+model_output = snakemake.output['dir']
+nb_output =  snakemake.output['mat']
+adata_output = snakemake.output['model']
 
 # Load annData Object, set to ensembl id
 adata_ref =  sc.read_h5ad(sc_input)
@@ -27,7 +28,7 @@ mod.train(max_epochs=100, accelerator = "gpu", batch_size=2500, train_size=1) # 
 mod.save(model_output, overwrite=True)
 
 # Calculate posteior
-adata_ref = mod.export_posterior(adata_ref, sample_kwargs={'num_samples': 2, 'batch_size': 2500, 'use_gpu': True}) # change to 1000 samples for full run
+adata_ref = mod.export_posterior(adata_ref, sample_kwargs={'num_samples': 1000, 'batch_size': 2500, 'use_gpu': True}) # change to 1000 samples for full run
 adata_ref.write(adata_output)
 
 # Export proportion matrix as pd 

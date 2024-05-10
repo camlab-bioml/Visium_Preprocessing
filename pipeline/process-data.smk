@@ -7,6 +7,10 @@ spots = {
     'spot_output': expand(output + 'data/spots/{sample}/nuclei_count.csv', sample = sample_ids)
 }
 
+cell2loc = {
+    'train_model': output + "cell2loc/stimulated_expression.csv"
+}
+
 # Conditionally add output files based on user specifications in config
 if config['plot_MT_HB']:
     process_data.append(output + 'figures/qc/MT-HB-counts-violin.png')
@@ -40,6 +44,19 @@ rule segment_nuclei:
         counts = output + 'data/spots/{sample}/' + "nuclei_count.csv"
     script:
         "process-data/segmentnuclei.py"
+
+rule train_cell2loc:
+    input:
+        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
+    params:
+        input_dir = directory("data/singlecell/")
+    output:
+        dir = directory(output + "cell2loc/"),
+        model = output + "cell2loc/model_adata.h5ad",
+        pt = output + "cell2loc/model.pt",
+        mat = output + "cell2loc/stimulated_expression.csv"
+    script:
+        "process-data/cell2loc_train.py"
 
 rule combine_anndata_and_plot_counts_violin:
     input:

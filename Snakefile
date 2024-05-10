@@ -17,4 +17,5 @@ include: "pipeline/process-data.smk"
 rule all:
     input: 
         process_data.values(),
-        spots.values()
+        spots.values(),
+        cell2loc.values()
