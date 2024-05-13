@@ -8,7 +8,11 @@ spots = {
 }
 
 cell2loc = {
-    'train_model': output + "cell2loc/stimulated_expression.csv"
+     'model': output + "cell2loc/model_adata.h5ad",
+     'pt': output + "cell2loc/model.pt",
+     'mat': output + "cell2loc/stimulated_expression.csv",
+     'accuracy': output + "cell2loc/train_accuracy.png",
+     'history': output + "cell2loc/train_history.png"
 }
 
 # Conditionally add output files based on user specifications in config
@@ -46,30 +50,32 @@ rule segment_nuclei:
         "process-data/segmentnuclei.py"
 
 rule train_cell2loc:
-    input:
-        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
-    params:
+     input:
+         h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
+     params:
         input_dir = directory("data/singlecell/")
-    output:
-        dir = directory(output + "cell2loc/"),
-        model = output + "cell2loc/model_adata.h5ad",
-        pt = output + "cell2loc/model.pt",
-        mat = output + "cell2loc/stimulated_expression.csv"
-    script:
-        "process-data/cell2loc_train.py"
+     output:
+         dir = directory(output + "cell2loc/"),
+         model = output + "cell2loc/model_adata.h5ad",
+         pt = output + "cell2loc/model.pt",
+         mat = output + "cell2loc/stimulated_expression.csv",
+         accuracy = output + "cell2loc/train_accuracy.png",
+         history = output + "cell2loc/train_history.png"
+     script:
+         "process-data/cell2loc_train.py"
 
-rule fit_cell2loc:
-    input:
-        model = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
-    params:
-        input_dir = directory("data/singlecell/")
-    output:
-        dir = directory(output + "cell2loc/"),
-        model = output + "cell2loc/model_adata.h5ad",
-        pt = output + "cell2loc/model.pt",
-        mat = output + "cell2loc/stimulated_expression.csv"
-    script:
-        "process-data/cell2loc_train.py"
+# rule fit_cell2loc:
+#     input:
+#         model = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
+#     params:
+#         input_dir = directory("data/singlecell/")
+#     output:
+#         dir = directory(output + "cell2loc/"),
+#         model = output + "cell2loc/model_adata.h5ad",
+#         pt = output + "cell2loc/model.pt",
+#         mat = output + "cell2loc/stimulated_expression.csv"
+#     script:
+#         "process-data/cell2loc_train.py"
 
 
 rule combine_anndata_and_plot_counts_violin:

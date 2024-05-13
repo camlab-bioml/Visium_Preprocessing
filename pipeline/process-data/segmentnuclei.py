@@ -9,15 +9,6 @@ from csbdeep.utils import normalize
 import PIL.Image
 PIL.Image.MAX_IMAGE_PIXELS = None
 
-gpus = tf.config.list_physical_devices('GPU')
-tf.config.set_visible_devices(gpus[:1], device_type='GPU')
-# Create a LogicalDevice with the appropriate memory limit
-log_dev_conf = tf.config.LogicalDeviceConfiguration(
-    memory_limit=8*1024 # 8 GB
-)
-# Apply the logical device configuration to the first GPU
-tf.config.set_logical_device_configuration(gpus, [log_dev_conf])
-
 # **** Because of compatibility with squidpy I will load the raw adata. Recommend to do post-hoc addition of nuclei count to clean SpatialData object. 
 # To update script for GPU implementation -> numpy problem
 
