@@ -6,17 +6,18 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 # Set up expected inputsls
-sc_input = snakemake.input['h5ad'] # "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad" # 
+sc_input = snakemake.input['h5ad'] # "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad" #
 
 # Params
 epochs = snakemake.params["epochs"]
 
 # Set up expected outputs
-model_output = snakemake.output['dir'] # "output/v1/cell2loc/Peng_cell2loc_model/" # 
-nb_output =  snakemake.output['mat'] # "output/v1/cell2loc/Peng_cell2loc_model/stimulated_expression.csv"  # 
-train_history = snakemake.output["history"] # "output/v1/cell2loc/Peng_cell2loc_model/train_history.png" # 
-train_accuracy = snakemake.output["accuracy"] # "output/v1/cell2loc/Peng_cell2loc_model/train_accuracy.png" # 
-adata_output =  snakemake.output['model'] # "output/v1/cell2loc/Peng_cell2loc_model/model.pt" # 
+adata_output = snakemake.output['h5ad'] #  "output/v1/cell2loc/Peng_cell2loc_model/model_data.h5ad"
+nb_output = snakemake.output['mat'] # "output/v1/cell2loc/Peng_cell2loc_model/stimulated_expression.csv"
+model_output = snakemake.output['model'] # "output/v1/cell2loc/Peng_cell2loc_model/model.pt"
+train_history = snakemake.output["history"] # "output/v1/cell2loc/Peng_cell2loc_model/stimulated_expression.csv"
+train_accuracy = snakemake.output["accuracy"] # "output/v1/cell2loc/Peng_cell2loc_model/train_accuracy.png"
+ 
 
 # Load annData Object, set to ensembl id
 adata_ref = sc.read_h5ad(sc_input)

@@ -8,19 +8,16 @@ import os
 # Set up expected I/O 
 tumour = snakemake.wildcards["sample"] # "D1-HT232P1H2A2" # 
 tumour_folder = "data/visium/" + tumour 
-nuclei_count_file = snakemake.input["nuclei_counts"] # "output/v1/data/spots/" + tumour + "/nuclei_count.csv" # 
-sc_reference = snakemake.input["h5ad"] # "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad" # 
-stim_expr = snakemake.input["stim_expr"] # "output/v1/cell2loc/stimulated_expression.csv" # 
-model = snakemake.input["model"] # "output/v1/cell2loc/model.pt" # 
+nuclei_count_file = snakemake.input["nuclei_counts"] # "output/v1/data/spots/" + tumour + "/nuclei_count.csv"  
+sc_reference = snakemake.input["h5ad"] # "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad" 
+stim_expr = snakemake.input["stim_expr"] 
 epochs = snakemake.params["epochs"]
 
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-
 # Outputs
-model_out = snakemake.output["model"]
 density_plot = snakemake.output["plot"]
 abundances = snakemake.output["mat"]
+adata_output = snakemake.output["h5ad"]
+model_output = snakemake.output["model"]
 
 # Load annData Object, keep tissue only
 adata_vis = sc.read_visium(tumour_folder, library_id=tumour)
@@ -36,7 +33,7 @@ adata_vis = adata_vis[:, ~adata_vis.var['MT_gene'].values]
 
 inf_aver = pd.read_csv(stim_expr, index_col=0)
 
-# Make sure to find shared genes between visium and infer_aver
+# Make sure to find shared genegenes between visium and infer_aver
 intersect = np.intersect1d(adata_vis.var_names, inf_aver.index)
 adata_vis = adata_vis[:, intersect].copy()
 inf_aver = inf_aver.loc[intersect, :].copy()
@@ -66,7 +63,8 @@ with plt.rc_context():
     plt.close()
 
 # Save model
-mod.save(model_out, overwrite=True)
+mod.save(model_output, overwrite = True)
+adata_vis.write(adata_output)
 adata_vis.obs.to_csv(abundances)
 
 # Finish Job

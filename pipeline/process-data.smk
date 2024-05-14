@@ -5,24 +5,20 @@ process_data = {
 }
 
 spots = {
-    "spot_output": expand(
-        output + "data/spots/{sample}/nuclei_count.csv", sample=sample_ids
-    )
+    "spot_output": expand(output + "data/spots/{sample}/nuclei_count.csv", sample=sample_ids)
 }
 
-cell2loc = {
-    "model": output + "cell2loc/model_adata.h5ad",
-    "pt": output + "cell2loc/model.pt",
-    "mat": output + "cell2loc/stimulated_expression.csv",
-    "accuracy": output + "cell2loc/train_accuracy.png",
-    "history": output + "cell2loc/train_history.png",
-    "model2": expand(output + "cell2loc/{sample}/model.pt", sample=sample_ids),
-    "mat2": expand(
-        output + "cell2loc/{sample}/celltype_abundances.csv", sample=sample_ids
-    ),
-    "plot": expand(
-        output + "cell2loc/{sample}/celltype_abundances.png", sample=sample_ids
-    ),
+cell2loc_train = {
+    "model": output + "Peng_cell2loc_model/model_adata.h5ad",
+    "pt": output + "Peng_cell2loc_model",
+    "mat": output + "Peng_cell2loc_model/stimulated_expression.csv",
+    "accuracy": output + "Peng_cell2loc_model/train_accuracy.png",
+    "history": output + "Peng_cell2loc_model/train_history.png"
+}
+
+cell2loc_predict = {
+    "mat2": expand(output + "cell2loc/{sample}/celltype_abundances.csv", sample=sample_ids),
+    "plot": expand(output + "cell2loc/{sample}/celltype_abundances.png", sample=sample_ids)
 }
 
 # Conditionally add output files based on user specifications in config
@@ -48,55 +44,51 @@ rule create_spatialdata:
     script:
         "process-data/create-visium.py"
 
-
 rule segment_nuclei:
     input:
         feature_matrix="data/visium/{sample}/filtered_feature_bc_matrix.h5",
         scale_factors="data/visium/{sample}/spatial/scalefactors_json.json",
         hires="data/visium/{sample}/spatial/tissue_hires_image.png",
         lowres="data/visium/{sample}/spatial/tissue_lowres_image.png",
-        tissue_pos="data/visium/{sample}/spatial/tissue_positions_list.csv",
+        tissue_pos="data/visium/{sample}/spatial/tissue_positions_list.csv"
     params:
         input_dir=directory("data/visium/{sample}/"),
     output:
         spots=directory(output + "data/spots/{sample}/"),
-        counts=output + "data/spots/{sample}/" + "nuclei_count.csv",
+        counts=output + "data/spots/{sample}/" + "nuclei_count.csv"
     script:
         "process-data/segmentnuclei.py"
 
-
-rule train_cell2loc:
+rule cell2loc_train:
     input:
         h5ad="data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
     params:
         input_dir=directory("data/singlecell/"),
-        epochs=100
+        epochs=200
     output:
-        dir=directory(output + "cell2loc/"),
-        model=output + "cell2loc/model_adata.h5ad",
-        pt=output + "cell2loc/model.pt",
-        mat=output + "cell2loc/stimulated_expression.csv",
-        accuracy=output + "cell2loc/train_accuracy.png",
-        history=output + "cell2loc/train_history.png"
+        h5ad=output + "Peng_cell2loc_model/model_adata.h5ad",
+        model = directory(output + "Peng_cell2loc_model"),
+        mat=output + "Peng_cell2loc_model/stimulated_expression.csv",
+        accuracy=output + "Peng_cell2loc_model/train_accuracy.png",
+        history=output + "Peng_cell2loc_model/train_history.png"
     script:
         "process-data/cell2loc_train.py"
 
-
-rule fit_cell2loc:
+rule cell2loc_predict:
     input:
         h5ad="data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
-        nuclei_counts=rules.segment_nuclei.output.counts,
-        stim_expr=rules.train_cell2loc.output.mat,
-        model=rules.train_cell2loc.output.model,
+        nuclei_counts = rules.segment_nuclei.output.counts,
+        stim_expr = rules.cell2loc_train.output.mat,
+        model = rules.cell2loc_train.output.model
     params:
-        epochs=100,
+        epochs=200
     output:
-        model=output + "cell2loc/{sample}/model.pt",
-        mat=output + "cell2loc/{sample}/celltype_abundances.csv",
-        plot=output + "cell2loc/{sample}/celltype_abundances.png",
+        mat = output + "cell2loc/{sample}/celltype_abundances.csv",
+        plot = output + "cell2loc/{sample}/celltype_abundances.png",
+        h5ad = output + "cell2loc/{sample}/{sample}_predict.h5ad",
+        model = directory(output + "cell2loc/{sample}/")
     script:
         "process-data/cell2loc_predict.py"
-
 
 rule combine_anndata_and_plot_counts_violin:
     input:

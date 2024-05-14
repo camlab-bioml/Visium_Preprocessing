@@ -18,4 +18,5 @@ rule all:
     input: 
         process_data.values(),
         spots.values(),
-        cell2loc.values()
+        cell2loc_train.values(),
+        cell2loc_predict.values()
