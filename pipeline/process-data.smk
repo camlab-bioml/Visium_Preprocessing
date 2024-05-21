@@ -65,7 +65,7 @@ rule cell2loc_train:
         h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
     params:
         input_dir = directory("data/singlecell/"),
-        epochs = 200
+        epochs = config['epochs']
     output:
         h5ad = output + "Peng_cell2loc_model/model_adata.h5ad",
         model = directory(output + "Peng_cell2loc_model"),
@@ -83,7 +83,7 @@ rule cell2loc_predict:
         stim_expr = rules.cell2loc_train.output.mat,
         model = rules.cell2loc_train.output.model
     params:
-        epochs = 200
+        epochs = config['epochs']
     output:
         mat = output + "cell2loc/{sample}/celltype_abundances.csv",
         plot = output + "cell2loc/{sample}/celltype_abundances.png",

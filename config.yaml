@@ -11,3 +11,5 @@ filtering:
   max_pct_hb: 20
   max_pct_mt: None
   min_n_genes_by_counts: 1000
+
+epochs: 200
