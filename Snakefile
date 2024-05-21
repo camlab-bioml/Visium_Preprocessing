@@ -9,6 +9,7 @@ container: config['container']
 output = 'output/' + config['v'] + '/'
 
 sample_ids = os.listdir("data/visium/")
+sce = ["Peng", "Zhou"]
 
 # Rules
 include: "pipeline/process-data.smk"

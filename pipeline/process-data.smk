@@ -9,17 +9,17 @@ spots = {
 }
 
 cell2loc_train = {
-    "model": output + "Peng_cell2loc_model/model_adata.h5ad",
-    "pt": output + "Peng_cell2loc_model",
-    "mat": output + "Peng_cell2loc_model/stimulated_expression.csv",
-    "accuracy1": output + "Peng_cell2loc_model/train_accuracy_1.png",
-    "accuracy2": output + "Peng_cell2loc_model/train_accuracy_2.png",
-    "history": output + "Peng_cell2loc_model/train_history.png"
+    "model": expand(output + "data/{sce}_cell2loc_model/model_adata.h5ad", sce = sce),
+    "pt": expand(output + "data/{sce}_cell2loc_model", sce = sce),
+    "mat": expand(output + "data/{sce}_cell2loc_model/stimulated_expression.csv", sce = sce),
+    "accuracy1": expand(output + "data/{sce}_cell2loc_model/train_accuracy_1.png", sce = sce),
+    "accuracy2": expand(output + "data/{sce}_cell2loc_model/train_accuracy_2.png", sce = sce),
+    "history": expand(output + "data/{sce}_cell2loc_model/train_history.png", sce = sce)
 }
 
 cell2loc_predict = {
-    "mat2": expand(output + "cell2loc/{sample}/celltype_abundances.csv", sample=sample_ids),
-    "plot": expand(output + "cell2loc/{sample}/celltype_abundances.png", sample=sample_ids)
+    "mat2": expand(output + "data/{sce}_cell2loc_model/predict/{sample}/celltype_abundances.csv", sample=sample_ids, sce = sce),
+    "plot": expand(output + "data/{sce}_cell2loc_model/predict/{sample}/celltype_abundances.png", sample=sample_ids, sce = sce)
 }
 
 # Conditionally add output files based on user specifications in config
@@ -64,24 +64,24 @@ rule segment_nuclei:
 
 rule cell2loc_train:
     input:
-        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
+        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-{sce}.h5ad",
     params:
         input_dir = directory("data/singlecell/"),
         epochs = config['epochs']
     output:
-        h5ad = output + "Peng_cell2loc_model/model_adata.h5ad",
-        model = directory(output + "Peng_cell2loc_model"),
-        mat = output + "Peng_cell2loc_model/stimulated_expression.csv",
-        accuracy1 = output + "Peng_cell2loc_model/train_accuracy_1.png",
-        accuracy2 = output + "Peng_cell2loc_model/train_accuracy_2.png",
-        history = output + "Peng_cell2loc_model/train_history.png"
+        h5ad = output + "data/{sce}_cell2loc_model/model_adata.h5ad",
+        model = directory(output + "data/{sce}_cell2loc_model"),
+        mat = output + "data/{sce}_cell2loc_model/stimulated_expression.csv",
+        accuracy1 = output + "data/{sce}_cell2loc_model/train_accuracy_1.png",
+        accuracy2 = output + "data/{sce}_cell2loc_model/train_accuracy_2.png",
+        history = output + "data/{sce}_cell2loc_model/train_history.png"
     threads: 10
     script:
         "process-data/cell2loc_train.py"
 
 rule cell2loc_predict:
     input:
-        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
+        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-{sce}.h5ad",
         nuclei_counts = rules.segment_nuclei.output.counts,
         stim_expr = rules.cell2loc_train.output.mat,
         model = rules.cell2loc_train.output.model
@@ -89,10 +89,10 @@ rule cell2loc_predict:
         epochs = config['epochs']
     threads: 10
     output:
-        mat = output + "cell2loc/{sample}/celltype_abundances.csv",
-        plot = output + "cell2loc/{sample}/celltype_abundances.png",
-        h5ad = output + "cell2loc/{sample}/{sample}_predict.h5ad",
-        model = directory(output + "cell2loc/{sample}/")
+        mat = output + "data/{sce}_cell2loc_model/predict/{sample}/celltype_abundances.csv",
+        plot = output + "data/{sce}_cell2loc_model/predict/{sample}/celltype_abundances.png",
+        h5ad = output + "data/{sce}_cell2loc_model/predict/{sample}/{sample}_predict.h5ad",
+        model = directory(output + "data/{sce}_cell2loc_model/predict/{sample}/")
     script:
         "process-data/cell2loc_predict.py"
 
