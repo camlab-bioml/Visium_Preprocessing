@@ -35,7 +35,8 @@ rule create_spatialdata:
         lowres = "data/visium/{sample}/spatial/tissue_lowres_image.png",
         tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv",
     params:
-        input_dir = directory("data/visium/{sample}/"),
+        input_dir = directory("data/visium/{sample}/")
+    threads: 1
     output:
         qc_fig = report(
             output + "figures/qc/Raw-{sample}-spatial-qc.png",
@@ -53,7 +54,8 @@ rule segment_nuclei:
         lowres = "data/visium/{sample}/spatial/tissue_lowres_image.png",
         tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv"
     params:
-        input_dir = directory("data/visium/{sample}/"),
+        input_dir = directory("data/visium/{sample}/")
+    threads: 1
     output:
         spots = directory(output + "data/spots/{sample}/"),
         counts = output + "data/spots/{sample}/" + "nuclei_count.csv"
@@ -73,6 +75,7 @@ rule cell2loc_train:
         accuracy1 = output + "Peng_cell2loc_model/train_accuracy_1.png",
         accuracy2 = output + "Peng_cell2loc_model/train_accuracy_2.png",
         history = output + "Peng_cell2loc_model/train_history.png"
+    threads: 10
     script:
         "process-data/cell2loc_train.py"
 
@@ -84,6 +87,7 @@ rule cell2loc_predict:
         model = rules.cell2loc_train.output.model
     params:
         epochs = config['epochs']
+    threads: 10
     output:
         mat = output + "cell2loc/{sample}/celltype_abundances.csv",
         plot = output + "cell2loc/{sample}/celltype_abundances.png",
@@ -99,6 +103,7 @@ rule combine_anndata_and_plot_counts_violin:
         ),
     params:
         spatial_datas = expand(output + "data/raw/{sample}/", sample=sample_ids),
+    threads: 1
     output:
         counts_violin=report(
             output + "figures/qc/gene-counts-violin.png", category="Step 1: Data QC"
@@ -126,7 +131,8 @@ rule visium_filter:
         spatialdata_dir=output + "data/raw/combined/",
         pct_counts_hb_thr=config["filtering"]["max_pct_hb"],
         pct_counts_mt_thr=config["filtering"]["max_pct_mt"],
-        n_genes_by_counts_thr=config["filtering"]["min_n_genes_by_counts"],
+        n_genes_by_counts_thr=config["filtering"]["min_n_genes_by_counts"]
+    threads: 1
     output:
         filtered_spatialdata=directory(output + "data/clean/"),
         finish_message=temp(output + "messages/finish-visium-filter.txt"),
@@ -138,7 +144,8 @@ rule plot_counts_filtered:
     input:
         message=output + "messages/finish-visium-filter.txt",
     params:
-        filtered_visium_spatialdata=output + "data/clean/",
+        filtered_visium_spatialdata=output + "data/clean/"
+    threads: 1
     output:
         qc_fig=report(
             output + "figures/qc/Filtered-{sample}-spatial-qc.png",
