@@ -5,15 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# Set up expected I/O 
-tumour = snakemake.wildcards["sample"] # "D1-HT232P1H2A2" # 
+# Snakemake params
+tumour = snakemake.wildcards["sample"]
 tumour_folder = "data/visium/" + tumour 
-nuclei_count_file = snakemake.input["nuclei_counts"] # "output/v1/data/spots/" + tumour + "/nuclei_count.csv"  
-sc_reference = snakemake.input["h5ad"] # "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad" 
+nuclei_count_file = snakemake.input["nuclei_counts"]
+sc_reference = snakemake.input["h5ad"]
 stim_expr = snakemake.input["stim_expr"] 
 epochs = snakemake.params["epochs"]
-
-# Outputs
 density_plot = snakemake.output["plot"]
 abundances = snakemake.output["mat"]
 adata_output = snakemake.output["h5ad"]

@@ -12,7 +12,8 @@ cell2loc_train = {
     "model": output + "Peng_cell2loc_model/model_adata.h5ad",
     "pt": output + "Peng_cell2loc_model",
     "mat": output + "Peng_cell2loc_model/stimulated_expression.csv",
-    "accuracy": output + "Peng_cell2loc_model/train_accuracy.png",
+    "accuracy1": output + "Peng_cell2loc_model/train_accuracy_1.png",
+    "accuracy2": output + "Peng_cell2loc_model/train_accuracy_2.png",
     "history": output + "Peng_cell2loc_model/train_history.png"
 }
 
@@ -28,60 +29,61 @@ if config["plot_MT_HB"]:
 
 rule create_spatialdata:
     input:
-        feature_matrix="data/visium/{sample}/filtered_feature_bc_matrix.h5",
-        scale_factors="data/visium/{sample}/spatial/scalefactors_json.json",
-        hires="data/visium/{sample}/spatial/tissue_hires_image.png",
-        lowres="data/visium/{sample}/spatial/tissue_lowres_image.png",
-        tissue_pos="data/visium/{sample}/spatial/tissue_positions_list.csv",
+        feature_matrix = "data/visium/{sample}/filtered_feature_bc_matrix.h5",
+        scale_factors = "data/visium/{sample}/spatial/scalefactors_json.json",
+        hires = "data/visium/{sample}/spatial/tissue_hires_image.png",
+        lowres = "data/visium/{sample}/spatial/tissue_lowres_image.png",
+        tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv",
     params:
-        input_dir=directory("data/visium/{sample}/"),
+        input_dir = directory("data/visium/{sample}/"),
     output:
-        qc_fig=report(
+        qc_fig = report(
             output + "figures/qc/Raw-{sample}-spatial-qc.png",
             category="Step 1: Data QC",
         ),
-        zarr=directory(output + "data/raw/{sample}/"),
+        zarr = directory(output + "data/raw/{sample}/"),
     script:
         "process-data/create-visium.py"
 
 rule segment_nuclei:
     input:
-        feature_matrix="data/visium/{sample}/filtered_feature_bc_matrix.h5",
-        scale_factors="data/visium/{sample}/spatial/scalefactors_json.json",
-        hires="data/visium/{sample}/spatial/tissue_hires_image.png",
-        lowres="data/visium/{sample}/spatial/tissue_lowres_image.png",
-        tissue_pos="data/visium/{sample}/spatial/tissue_positions_list.csv"
+        feature_matrix = "data/visium/{sample}/filtered_feature_bc_matrix.h5",
+        scale_factor = "data/visium/{sample}/spatial/scalefactors_json.json",
+        hires = "data/visium/{sample}/spatial/tissue_hires_image.png",
+        lowres = "data/visium/{sample}/spatial/tissue_lowres_image.png",
+        tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv"
     params:
-        input_dir=directory("data/visium/{sample}/"),
+        input_dir = directory("data/visium/{sample}/"),
     output:
-        spots=directory(output + "data/spots/{sample}/"),
-        counts=output + "data/spots/{sample}/" + "nuclei_count.csv"
+        spots = directory(output + "data/spots/{sample}/"),
+        counts = output + "data/spots/{sample}/" + "nuclei_count.csv"
     script:
         "process-data/segmentnuclei.py"
 
 rule cell2loc_train:
     input:
-        h5ad="data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
+        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
     params:
-        input_dir=directory("data/singlecell/"),
-        epochs=200
+        input_dir = directory("data/singlecell/"),
+        epochs = 200
     output:
-        h5ad=output + "Peng_cell2loc_model/model_adata.h5ad",
+        h5ad = output + "Peng_cell2loc_model/model_adata.h5ad",
         model = directory(output + "Peng_cell2loc_model"),
-        mat=output + "Peng_cell2loc_model/stimulated_expression.csv",
-        accuracy=output + "Peng_cell2loc_model/train_accuracy.png",
-        history=output + "Peng_cell2loc_model/train_history.png"
+        mat = output + "Peng_cell2loc_model/stimulated_expression.csv",
+        accuracy1 = output + "Peng_cell2loc_model/train_accuracy_1.png",
+        accuracy2 = output + "Peng_cell2loc_model/train_accuracy_2.png",
+        history = output + "Peng_cell2loc_model/train_history.png"
     script:
         "process-data/cell2loc_train.py"
 
 rule cell2loc_predict:
     input:
-        h5ad="data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
+        h5ad = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad",
         nuclei_counts = rules.segment_nuclei.output.counts,
         stim_expr = rules.cell2loc_train.output.mat,
         model = rules.cell2loc_train.output.model
     params:
-        epochs=200
+        epochs = 200
     output:
         mat = output + "cell2loc/{sample}/celltype_abundances.csv",
         plot = output + "cell2loc/{sample}/celltype_abundances.png",
@@ -92,17 +94,17 @@ rule cell2loc_predict:
 
 rule combine_anndata_and_plot_counts_violin:
     input:
-        spatial_data_out=expand(
+        spatial_data_out = expand(
             output + "figures/qc/Raw-{sample}-spatial-qc.png", sample=sample_ids
         ),
     params:
-        spatial_datas=expand(output + "data/raw/{sample}/", sample=sample_ids),
+        spatial_datas = expand(output + "data/raw/{sample}/", sample=sample_ids),
     output:
         counts_violin=report(
             output + "figures/qc/gene-counts-violin.png", category="Step 1: Data QC"
         ),
-        zarr=directory(output + "data/raw/combined/"),
-        finish_message=temp(output + "messages/finish-combining-visium.txt"),
+        zarr = directory(output + "data/raw/combined/"),
+        finish_message = temp(output + "messages/finish-combining-visium.txt"),
     script:
         "process-data/visium-concatenate.py"
 
@@ -116,7 +118,6 @@ rule combine_anndata_and_plot_counts_violin:
 #         mt_hb_violin = output + 'figures/qc/MT-HB-counts-violin.png'
 #     script:
 #         "process-data/plot-MT-HB-counts.py"
-
 
 rule visium_filter:
     input:
