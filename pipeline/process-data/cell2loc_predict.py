@@ -1,9 +1,11 @@
+import os
+os.environ["THEANO_FLAGS"] = 'device=cuda,floatX=float32,force_device=True'
+
 import cell2location
 import scanpy as sc
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
 # Snakemake params
 tumour = snakemake.wildcards["sample"]

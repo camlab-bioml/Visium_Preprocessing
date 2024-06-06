@@ -55,7 +55,7 @@ rule segment_nuclei:
         tissue_pos = "data/visium/{sample}/spatial/tissue_positions_list.csv"
     params:
         input_dir = directory("data/visium/{sample}/")
-    threads: 1
+    threads: 10
     output:
         spots = directory(output + "data/spots/{sample}/"),
         counts = output + "data/spots/{sample}/" + "nuclei_count.csv"
@@ -68,6 +68,7 @@ rule cell2loc_train:
     params:
         input_dir = directory("data/singlecell/"),
         epochs = config['epochs']
+    singularity: '/ddn_exa/campbell/share/containers/scvi-v2.sif'
     output:
         h5ad = output + "data/{sce}_cell2loc_model/model_adata.h5ad",
         model = directory(output + "data/{sce}_cell2loc_model"),
@@ -86,7 +87,8 @@ rule cell2loc_predict:
         stim_expr = rules.cell2loc_train.output.mat,
         model = rules.cell2loc_train.output.model
     params:
-        epochs = config['epochs']
+        epochs = 30000
+    singularity: '/ddn_exa/campbell/share/containers/scvi-v2.sif'
     threads: 10
     output:
         mat = output + "data/{sce}_cell2loc_model/predict/{sample}/celltype_abundances.csv",

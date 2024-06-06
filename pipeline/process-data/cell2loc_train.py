@@ -1,4 +1,6 @@
 import os
+os.environ["THEANO_FLAGS"] = 'device=cuda,floatX=float32,force_device=True'
+
 import numpy as np
 import scanpy as sc
 import pandas as pd
