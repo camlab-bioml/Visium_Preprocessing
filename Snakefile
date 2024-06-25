@@ -1,18 +1,23 @@
-
+# Import pythonic packages
+import os
 import pandas as pd
+
+# User Specified Configurations
 configfile: "config.yaml"
 container: config['container']
 
 output = 'output/' + config['v'] + '/'
 
-samples_df = pd.read_csv(config['samples_file'])
-sample_ids = samples_df.sample_name.to_list()
+sample_ids = os.listdir("data/visium/")
+sce = ["Peng", "Zhou"]
 
-include: "pipeline/cellranger.smk"
+# Rules
 include: "pipeline/process-data.smk"
 
-
+# Outputs
 rule all:
     input: 
-        cellranger.values(),
-        process_data.values()
+        process_data.values(),
+        spots.values(),
+        cell2loc_train.values(),
+        cell2loc_predict.values()

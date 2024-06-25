@@ -1,4 +1,11 @@
-
+slurm/*
+*.zip
 output/*
 slurm-*
 data/*
+.snakemake/*
+.vscode/*
+envs/*
+.cache/*
+.cache/numba/*
+

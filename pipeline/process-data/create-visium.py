@@ -1,8 +1,9 @@
 import scanpy as sc
 import spatialdata_io
 import spatialdata_plot
-
 import matplotlib.pyplot as plt
+import PIL.Image
+PIL.Image.MAX_IMAGE_PIXELS = None
 
 vs = spatialdata_io.visium(snakemake.params['input_dir'], dataset_id = snakemake.wildcards['sample'])
 vs.table.var_names_make_unique()
@@ -11,6 +12,7 @@ vs.table.var['mt'] = vs.table.var_names.str.startswith('MT-')
 vs.table.var['hb'] = vs.table.var_names.str.match('HBA1|HBA2|HBB|HBD|HBE1|HBG1|HBG2|HBM|HBQ1|HBZ')
 
 sc.pp.calculate_qc_metrics(vs.table, qc_vars=['mt', 'hb'], percent_top=None, log1p=False, inplace=True)
+
 
 with plt.rc_context():
     fig, axs = plt.subplots(ncols=4, nrows=1, figsize=(15, 4))
