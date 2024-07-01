@@ -13,6 +13,7 @@ sce = ["Peng", "Zhou"]
 
 # Rules
 include: "pipeline/process-data.smk"
+include: "pipeline/train_sibyl.smk"
 
 # Outputs
 rule all:
@@ -20,4 +21,6 @@ rule all:
         process_data.values(),
         spots.values(),
         cell2loc_train.values(),
-        cell2loc_predict.values()
+        cell2loc_predict.values(),
+        cell2loc_train_sibyl.values(),
+        cell2loc_predict_sibyl.values()

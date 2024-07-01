@@ -71,7 +71,7 @@ selected = cell2location.utils.filter_genes(adata_ref, cell_count_cutoff=5, cell
 adata_ref = adata_ref[:, selected].copy()
 
 # Set up models, train, save
-cell2location.models.RegressionModel.setup_anndata(adata=adata_ref, batch_key='sample', labels_key='singler.label')
+cell2location.models.RegressionModel.setup_anndata(adata=adata_ref, batch_key='sample', labels_key='subset')
 mod = cell2location.models.RegressionModel(adata_ref)
 mod.view_anndata_setup()
 mod.train(max_epochs=epochs, accelerator = "gpu", batch_size=2500, train_size=1) # change to 2 epoch
