@@ -11,6 +11,9 @@ from scvi import REGISTRY_KEYS
 from pyro import clear_param_store
 import cell2location
 from cell2location.models.base._pyro_mixin import PltExportMixin
+import torch
+
+torch.set_float32_matmul_precision('medium')
 
 # Uncomment for troubleshooting
 # sc_input = "data/singlecell/scRNASeq-SingleR-annotated-sce-Peng.h5ad"
@@ -74,7 +77,7 @@ adata_ref = adata_ref[:, selected].copy()
 cell2location.models.RegressionModel.setup_anndata(adata=adata_ref, batch_key='sample', labels_key='subset')
 mod = cell2location.models.RegressionModel(adata_ref)
 mod.view_anndata_setup()
-mod.train(max_epochs=epochs, accelerator = "gpu", batch_size=2500, train_size=1) # change to 2 epoch
+mod.train(max_epochs=epochs, batch_size=2500, train_size=1) # change to 2 epoch
 mod.save(model_output, overwrite=True)
 
 # Add the new method to the instance

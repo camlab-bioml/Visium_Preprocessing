@@ -51,7 +51,7 @@ mod = cell2location.models.Cell2location(adata=adata_vis, cell_state_df=inf_aver
 mod.view_anndata_setup()
 
 # Train
-mod.train(max_epochs=epochs, batch_size=None, train_size=1, accelerator="gpu")
+mod.train(max_epochs=epochs, batch_size=None, train_size=1)
 
 adata_vis = mod.export_posterior(adata_vis, sample_kwargs={'num_samples': 1000, 'batch_size': mod.adata.n_obs, 'use_gpu': True})
 
